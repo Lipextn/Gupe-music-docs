@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-import youtube_dl
+import yt_dlp
 import os
 from dotenv import load_dotenv
 
@@ -28,10 +28,10 @@ async def tocar_musica(ctx):
     url = fila.pop(0)
     
     ydl_opts = {'format': 'bestaudio'}
-    with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
         musica_atual = info['title']
-        voice_client.play(discord.FFmpegPCMAudio(info['formats'][0]['url']),
+        voice_client.play(discord.FFmpegPCMAudio(info['url'], executable='ffmpeg'),
                         after=lambda e: bot.loop.create_task(tocar_musica(ctx)))
     
     await ctx.send(f"🎵 Tocando agora: **{musica_atual}**")
