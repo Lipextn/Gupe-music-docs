@@ -9,7 +9,7 @@ pkgs.mkShell {
     (python.withPackages (ps: [
       ps.discord  #  Correto: nome do pacote no Nixpkgs
       ps.python-dotenv
-      # Adicione outras dependências aqui (ex: ps.requests, ps.youtube-dl)
+      ps.yt-dlp  # Adicione outras dependências aqui (ex: ps.requests, ps.youtube-dl)
     ]))
   ];
 }
