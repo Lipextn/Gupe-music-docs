@@ -57,7 +57,7 @@ async def pause(ctx):
         await ctx.send("⏸ Música pausada")
 
 @bot.command()
-async def continue(ctx):
+async def proximo(ctx):
     global pausado
     if ctx.voice_client.is_paused():
         ctx.voice_client.resume()
