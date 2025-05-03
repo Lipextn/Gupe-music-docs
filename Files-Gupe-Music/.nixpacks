@@ -1,0 +1,15 @@
+{ pkgs ? import <nixpkgs> {} }:
+
+let
+  python = pkgs.python311;
+in
+pkgs.mkShell {
+  buildInputs = [
+    python
+    (python.withPackages (ps: [
+      ps.discord  #  Correto: nome do pacote no Nixpkgs
+      ps.python-dotenv
+      # Adicione outras dependências aqui (ex: ps.requests, ps.youtube-dl)
+    ]))
+  ];
+}
