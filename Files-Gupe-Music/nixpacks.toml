@@ -1,3 +1,6 @@
+[build]
+builder = "nixpacks"
+
 [phases.setup]
 nixPkgs = ["python310", "pip"]
 
