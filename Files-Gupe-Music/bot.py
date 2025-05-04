@@ -41,7 +41,7 @@ async def tocar_musica(ctx):
     url = fila.pop(0)
 
     try:
-        with youtube_dl.YoutubeDL(yt_opts) as ydl:
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
             musica_url = info['url']
             musica_atual = info.get('title', 'Música desconhecida')
