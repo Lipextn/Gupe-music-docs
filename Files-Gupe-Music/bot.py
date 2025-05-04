@@ -19,13 +19,13 @@ pausado = False
 
 # Configurações do yt_dlp
 ydl_opts = {
-        'format': 'bestaudio/best',         
-        'cookiefile': 'youtube.com_cookies.txt'
-        'noplaylist': True,
-        'quiet': True,
-        'default_search': 'ytsearch',
-        'extract_flat': False,
-    }
+    'format': 'bestaudio/best',
+    'cookiefile': 'youtube.com_cookies.txt',
+    'noplaylist': True,
+    'quiet': True,
+    'default_search': 'ytsearch',
+    'extract_flat': False,
+}
 
 @bot.event
 async def on_ready():
