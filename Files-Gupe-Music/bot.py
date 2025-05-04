@@ -18,15 +18,14 @@ musica_atual = None
 pausado = False
 
 # Configurações do yt_dlp
-yt_opts = {
-    'format': 'bestaudio/best',
-     'cookiefile': 'youtube.com_cookies.txt'
-}
-    'quiet': True,
-    'no_warnings': True,
-    'default_search': 'auto',
-    'source_address': '0.0.0.0'
-}
+ydl_opts = {
+        'format': 'bestaudio/best',         
+        'cookiefile': 'youtube.com_cookies.txt'
+        'noplaylist': True,
+        'quiet': True,
+        'default_search': 'ytsearch',
+        'extract_flat': False,
+    }
 
 @bot.event
 async def on_ready():
