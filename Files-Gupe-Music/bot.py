@@ -158,4 +158,40 @@ async def ajuda(ctx):
     """
     await ctx.send(ajuda_msg)
 
+# ... (todo o seu código acima continua inalterado)
+
 bot.run(os.getenv('DISCORD_TOKEN'))
+
+# ADIÇÕES ABAIXO: ----------------------------
+
+import openai  # biblioteca da OpenAI
+
+# Carrega a chave da API do ChatGPT
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+# Comando !ping
+@bot.command()
+async def ping(ctx):
+    latencia = round(bot.latency * 1000)
+    await ctx.send(f"🏓 Pong! Latência: {latencia}ms")
+
+# Comando !gpt
+@bot.command()
+async def gpt(ctx, *, pergunta):
+    await ctx.send("🤖 Pensando...")
+    try:
+        resposta = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[
+                {"role": "system", "content": "Você é um assistente útil no Discord."},
+                {"role": "user", "content": pergunta}
+            ],
+            max_tokens=150,
+            temperature=0.7
+        )
+        conteudo = resposta.choices[0].message.content.strip()
+        await ctx.send(f"💬 {conteudo}")
+    except Exception as e:
+        await ctx.send("⚠️ Ocorreu um erro ao consultar o ChatGPT.")
+        print(f"[GPT ERRO] {e}")
+
