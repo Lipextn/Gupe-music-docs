@@ -1,30 +1,17 @@
 import discord
 from discord.ext import commands
-import yt_dlp as youtube_dl
+import yt_dlp
 import os
 from dotenv import load_dotenv
 
-# Carrega variáveis do .env
 load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
 
-# Inicializa o bot com todas as permissões
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-# Variáveis de controle
 fila = []
 musica_atual = None
 pausado = False
-
-# Configurações do YouTube-DLP
-yt_opts = {
-    'format': 'bestaudio',
-    'quiet': True,
-    'no_warnings': True,
-    'default_search': 'auto',
-    'source_address': '0.0.0.0'
-}
 
 @bot.event
 async def on_ready():
@@ -32,44 +19,48 @@ async def on_ready():
 
 async def tocar_musica(ctx):
     global fila, musica_atual, pausado
-
+    
     if not fila or pausado:
         return
-
+    
     voice_client = ctx.voice_client
     url = fila.pop(0)
 
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'noplaylist': True,
+        'quiet': True,
+        'default_search': 'ytsearch',
+        'extract_flat': False,
+    }
+
     try:
-        with youtube_dl.YoutubeDL(yt_opts) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
+            if 'entries' in info:
+                info = info['entries'][0]
             musica_url = info['url']
             musica_atual = info.get('title', 'Música desconhecida')
 
-            source = discord.FFmpegPCMAudio(musica_url)
-            voice_client.play(source, after=lambda e: bot.loop.create_task(tocar_musica(ctx)))
+        source = discord.FFmpegPCMAudio(musica_url, before_options='-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5')
+        voice_client.play(source, after=lambda e: bot.loop.create_task(tocar_musica(ctx)))
+        await ctx.send(f"🎵 Tocando agora: **{musica_atual}**")
 
-            await ctx.send(f"🎵 Tocando agora: **{musica_atual}**")
     except Exception as e:
-        await ctx.send("❌ Erro ao tentar tocar a música.")
-        print(f"[ERRO] Falha ao reproduzir: {e}")
-        await tocar_musica(ctx)  # Tenta a próxima da fila
+        print("Erro ao tocar música:", e)
+        await ctx.send("❌ Erro ao tentar tocar a música. Verifique o link ou tente novamente.")
 
 @bot.command()
-async def play(ctx, *, url: str):
+async def play(ctx, *, url):
     global fila
-
     if not ctx.author.voice:
-        return await ctx.send("⚠️ Você precisa estar em um canal de voz.")
-
-    if not ctx.voice_client:
-        await ctx.author.voice.channel.connect()
-
+        return await ctx.send("🚫 Você precisa estar em um canal de voz primeiro!")
+    
+    voice_client = ctx.voice_client or await ctx.author.voice.channel.connect()
     fila.append(url)
 
-    if not ctx.voice_client.is_playing() and not ctx.voice_client.is_paused():
+    if not voice_client.is_playing() and not voice_client.is_paused():
         await tocar_musica(ctx)
-    else:
-        await ctx.send("🎶 Música adicionada à fila!")
 
 @bot.command()
 async def pause(ctx):
@@ -77,15 +68,15 @@ async def pause(ctx):
     if ctx.voice_client and ctx.voice_client.is_playing():
         ctx.voice_client.pause()
         pausado = True
-        await ctx.send("⏸ Música pausada.")
+        await ctx.send("⏸ Música pausada")
 
-@bot.command(name="continue")
-async def continuar(ctx):
+@bot.command()
+async def continue_(ctx):
     global pausado
     if ctx.voice_client and ctx.voice_client.is_paused():
         ctx.voice_client.resume()
         pausado = False
-        await ctx.send("▶ Música continuada.")
+        await ctx.send("▶ Continuando música")
 
 @bot.command()
 async def stop(ctx):
@@ -94,53 +85,48 @@ async def stop(ctx):
         fila.clear()
         ctx.voice_client.stop()
         musica_atual = None
-        await ctx.send("⏹ Música parada e fila limpa.")
+        await ctx.send("⏹ Música parada e fila limpa")
 
 @bot.command()
 async def skip(ctx):
-    if ctx.voice_client:
+    if ctx.voice_client and ctx.voice_client.is_playing():
         ctx.voice_client.stop()
-        await ctx.send("⏭ Música pulada.")
-        await tocar_musica(ctx)
+        await ctx.send("⏭ Música pulada")
 
 @bot.command()
 async def back(ctx):
     global fila
     if musica_atual:
         fila.insert(0, musica_atual)
-        ctx.voice_client.stop()
-        await ctx.send("⏮ Voltando para a música anterior.")
-        await tocar_musica(ctx)
+        if ctx.voice_client:
+            ctx.voice_client.stop()
+            await ctx.send("⏮ Voltando para a música anterior")
 
 @bot.command()
 async def repeat(ctx):
     global fila
     if musica_atual:
         fila.insert(0, musica_atual)
-        await ctx.send("🔂 Música adicionada novamente para repetir.")
+        await ctx.send("🔂 Música será repetida")
 
 @bot.command()
 async def list(ctx):
     if not fila:
-        return await ctx.send("🎵 Fila de músicas vazia.")
+        return await ctx.send("📭 A fila está vazia.")
     lista = "\n".join([f"{i+1}. {url}" for i, url in enumerate(fila[:10])])
-    await ctx.send(f"🎶 **Fila atual:**\n{lista}")
+    await ctx.send(f"🎶 **Fila de músicas:**\n{lista}")
 
 @bot.command()
 async def ajuda(ctx):
-    ajuda_msg = """
-    **🎧 Comandos do Bot de Música:**
-    `!play [link ou nome]` - Toca uma música do YouTube
-    `!pause` - Pausa a música
-    `!continue` - Continua a música pausada
-    `!stop` - Para tudo e limpa a fila
-    `!skip` - Pula para a próxima música
-    `!back` - Volta para a música anterior
-    `!repeat` - Repete a música atual
-    `!list` - Mostra as músicas da fila
-    """
-    await ctx.send(ajuda_msg)
+    embed = discord.Embed(title="🎧 Comandos do Bot de Música", color=0x7289da)
+    embed.add_field(name="!play [link ou nome]", value="Toca uma música do YouTube", inline=False)
+    embed.add_field(name="!pause", value="Pausa a música atual", inline=False)
+    embed.add_field(name="!continue", value="Continua a música pausada", inline=False)
+    embed.add_field(name="!stop", value="Para a música e limpa a fila", inline=False)
+    embed.add_field(name="!skip", value="Pula para a próxima música", inline=False)
+    embed.add_field(name="!back", value="Volta para a música anterior", inline=False)
+    embed.add_field(name="!repeat", value="Repete a música atual", inline=False)
+    embed.add_field(name="!list", value="Mostra as próximas músicas da fila", inline=False)
+    await ctx.send(embed=embed)
 
-
-# Lê o token do arquivo .env automaticamente
 bot.run(os.getenv('DISCORD_TOKEN'))
