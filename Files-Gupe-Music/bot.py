@@ -20,6 +20,8 @@ pausado = False
 # Configurações do yt_dlp
 yt_opts = {
     'format': 'bestaudio/best',
+     'cookiefile': 'youtube.com_cookies.txt'
+}
     'quiet': True,
     'no_warnings': True,
     'default_search': 'auto',
