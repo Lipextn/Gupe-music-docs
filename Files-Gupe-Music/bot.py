@@ -160,6 +160,12 @@ async def ajuda(ctx):
 
 # ... (todo o seu código acima continua inalterado)
 
+intents = discord.Intents.default()
+intents.messages = True
+bot = commands.Bot(command_prefix="!",intents=intents)
+
+openai.api_key=OPENAI_API_KEY
+
 async def buscar_historico_canal(canal,limit=5):
     messages_list = []
 
@@ -188,7 +194,7 @@ def ask_gpt(mensagens):
 @bot.event
 async def on_ready():
     print(f"O {bot.user.name} ficou ligado!")
-    await bot.change_presence(activity=discord.CustomActivity(emoji="👉",name="Zamanosuke"))
+    await bot.change_presence(activity=discord.CustomActivity(emoji="👉",name="Crie seu próprio CHATGPT Bot bit.ly/chatgptdiscord"))
 
 @bot.event
 async def on_message(message):
@@ -202,5 +208,6 @@ async def on_message(message):
         await message.reply(resposta)
     
     await bot.process_commands(message)
+
 
 bot.run(os.getenv('DISCORD_TOKEN'))
