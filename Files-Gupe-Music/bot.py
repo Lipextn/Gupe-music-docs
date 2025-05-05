@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 # Carrega variáveis do .env
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Inicializa o bot
 intents = discord.Intents.all()
