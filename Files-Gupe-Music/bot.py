@@ -170,8 +170,6 @@ async def gpt(ctx, *, pergunta):
 
 bot.run(os.getenv('DISCORD_TOKEN'))
 
-# ADIÇÕES ABAIXO: ----------------------------
-
 import openai  # biblioteca da OpenAI
 
 # Carrega a chave da API do ChatGPT
@@ -203,3 +201,4 @@ async def gpt(ctx, *, pergunta):
         await ctx.send("⚠️ Ocorreu um erro ao consultar o ChatGPT.")
         print(f"[GPT ERRO] {e}")
 
+bot.run(os.getenv('DISCORD_TOKEN'))
