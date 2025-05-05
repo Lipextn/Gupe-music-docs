@@ -160,6 +160,14 @@ async def ajuda(ctx):
 
 # ... (todo o seu código acima continua inalterado)
 
+@bot.command()
+async def ping(ctx):
+    await ctx.send("🏓 Pong!")
+
+@bot.command()
+async def gpt(ctx, *, pergunta):
+    ...
+
 bot.run(os.getenv('DISCORD_TOKEN'))
 
 # ADIÇÕES ABAIXO: ----------------------------
