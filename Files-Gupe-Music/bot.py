@@ -194,7 +194,7 @@ def ask_gpt(mensagens):
 @bot.event
 async def on_ready():
     print(f"O {bot.user.name} ficou ligado!")
-    await bot.change_presence(activity=discord.CustomActivity(emoji="👉",name="Crie seu próprio CHATGPT Bot bit.ly/chatgptdiscord"))
+    await bot.change_presence(activity=discord.CustomActivity(emoji="👉",name="twitch.tv/calycoelho"))
 
 @bot.event
 async def on_message(message):
