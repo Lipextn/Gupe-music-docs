@@ -160,45 +160,47 @@ async def ajuda(ctx):
 
 # ... (todo o seu código acima continua inalterado)
 
-@bot.command()
-async def ping(ctx):
-    await ctx.send("🏓 Pong!")
+async def buscar_historico_canal(canal,limit=5):
+    messages_list = []
 
-@bot.command()
-async def gpt(ctx, *, pergunta):
-    ...
-
-bot.run(os.getenv('DISCORD_TOKEN'))
-
-import openai  # biblioteca da OpenAI
-
-# Carrega a chave da API do ChatGPT
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# Comando !ping
-@bot.command()
-async def ping(ctx):
-    latencia = round(bot.latency * 1000)
-    await ctx.send(f"🏓 Pong! Latência: {latencia}ms")
-
-# Comando !gpt
-@bot.command()
-async def gpt(ctx, *, pergunta):
-    await ctx.send("🤖 Pensando...")
-    try:
-        resposta = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "Você é um assistente útil no Discord."},
-                {"role": "user", "content": pergunta}
-            ],
-            max_tokens=150,
-            temperature=0.7
+    async for message in canal.history(limit=limit):
+        messages_list.append(
+            {
+                "role":"user" if message.author.id!=bot.user.id else "system",
+                "content":message.content
+            }
         )
-        conteudo = resposta.choices[0].message.content.strip()
-        await ctx.send(f"💬 {conteudo}")
-    except Exception as e:
-        await ctx.send("⚠️ Ocorreu um erro ao consultar o ChatGPT.")
-        print(f"[GPT ERRO] {e}")
+    
+    messages_list.reverse()
+    return messages_list
+
+
+def ask_gpt(mensagens):
+    response = openai.ChatCompletion.create(
+        messages=mensagens,
+        model="gpt-3.5-turbo-16k",
+        temperature=0.9,
+        max_tokens=1000
+    )
+
+    return response.choices[0].message.content
+
+@bot.event
+async def on_ready():
+    print(f"O {bot.user.name} ficou ligado!")
+    await bot.change_presence(activity=discord.CustomActivity(emoji="👉",name="Zamanosuke"))
+
+@bot.event
+async def on_message(message):
+    if message.author.bot:
+        return
+
+    async with message.channel.typing():
+        mensagens = await buscar_historico_canal(message.channel)
+        resposta = ask_gpt(mensagens)
+
+        await message.reply(resposta)
+    
+    await bot.process_commands(message)
 
 bot.run(os.getenv('DISCORD_TOKEN'))
